@@ -1,0 +1,4 @@
+TinyFramework
+=============
+
+Simply make sure that the lib/ directory is in your include_path, then direct your browser to the yourproject/index.php file.
