@@ -1,17 +1,15 @@
 <?php
 /**
- * Generic functionality for calling the requested Controller method. Note that
- * the lib/ directory should be in your include_path.
  *
- * @package yourproject
+ * @package DataAnalysis
  */
 
-define('ACTIVE_CONFIG', 'Config_YourProject');
+define('ACTIVE_CONFIG', 'YourProject');
+
 include_once('env.php');
 
-$controller = (isset($_REQUEST['controller']) ? $_REQUEST['controller'] : TinyFramework::getConfig()->default_controller);
-$method = (isset($_REQUEST['method']) ? $_REQUEST['method'] : TinyFramework::getConfig()->default_method);
-
+// Load and call the requested Controller and Method
+$controller = 'Controller_' . TinyFramework::getRequest()->controller;
+$method = TinyFramework::getRequest()->method;
 $obj = TinyFramework::getFactory()->get($controller);
 $obj->$method();
-
