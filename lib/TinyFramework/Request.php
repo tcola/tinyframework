@@ -26,7 +26,7 @@ class TinyFramework_Request
 	 *
 	 * @return string
 	 */
-	public function getController()
+	private function getController()
 	{
 		if (!isset($this->request['controller']))
 		{
@@ -42,7 +42,7 @@ class TinyFramework_Request
 	 *
 	 * @return string
 	 */
-	public function getMethod()
+	private function getMethod()
 	{
 		if (!isset($this->request['method']))
 		{
@@ -65,8 +65,17 @@ class TinyFramework_Request
 
 			default:
 				if (isset($this->request[$name]))
+				{
 					return $this->request[$name];
+				}
+				$opt = getopt('', array($name . ':'));
+				if (isset($opt[$name]))
+				{
+					$this->request[$name] = $opt[$name];
+					return $this->request[$name];
+				}
 		}
+		return NULL;
 	}
 
 	public function __set($name, $value)

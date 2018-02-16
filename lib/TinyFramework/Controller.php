@@ -1,11 +1,13 @@
 <?php
 /**
- * TinyFramwork Controller abstract.
+ * TinyFramework Controller abstract.
  *
  * @package TinyFramework
  */
-abstract class TinyFramework_Controller extends TinyFramework_DependencyInjected
+abstract class TinyFramework_Controller
 {
+	use TinyFramework_DependencyInjected;
+
 	/**
 	 * Renders the specified View. Views should access tokens using the $tokens
 	 * stdClass. 

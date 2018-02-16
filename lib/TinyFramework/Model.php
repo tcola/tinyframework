@@ -14,7 +14,7 @@ abstract class TinyFramework_Model
 	/**
 	 * @var array of column names (public properties).
 	 */
-	private $columns;
+	protected $columns;
 
 	/**
 	 * Returns the database table with which the Model is associated. 
@@ -46,11 +46,11 @@ abstract class TinyFramework_Model
 				ReflectionProperty::IS_PUBLIC
 			);
 			foreach ($properties as $property) {
-				$columns[] = $property->getName();
+				$this->columns[] = $property->getName();
 			}
 		}
 
-		return $columns;
+		return $this->columns;
 	}
 
 	/**

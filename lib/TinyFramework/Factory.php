@@ -17,14 +17,46 @@ class TinyFramework_Factory
 	{
 		$obj = new $classname();
 
-		if ($obj instanceof TinyFramework_DependencyInjected)
+		if ($this->isDependencyInjected($classname))
 		{
 			$obj->setFactory($this);
-			$obj->setDatabase(TinyFramework::getDatabase());
+			// If class specifies a specific database, then use it
+			if ($obj->getDatabaseDSN())
+			{
+				$dsn = $obj->getDatabaseDSN();
+				$obj->setDatabase(TinyFramework::getDatabase($dsn));
+			}
+			else // otherwise use the default as set in the config
+			{
+				$obj->setDatabase(TinyFramework::getDatabase());
+			}
 			$obj->setConfig(TinyFramework::getConfig());
+			$obj->setRequest(TinyFramework::getRequest());
 		}
 
 		return $obj;
+	}
+
+	/**
+	 * Returns bool TRUE if class (or a parent) uses DependencyInjected trait
+	 *
+	 * @param string $classname
+	 * @return bool
+	 */
+	public function isDependencyInjected($classname)
+	{
+		$traits = class_uses($classname);
+		// Get all parent traits
+		while ($classname = get_parent_class($classname))
+		{
+			$traits = array_merge($traits, class_uses($classname));
+		}
+		// Get all trait traits
+		foreach ($traits as $trait)
+		{
+			$traits = array_merge($traits, class_uses($trait));
+		}
+		return isset($traits['TinyFramework_DependencyInjected']);
 	}
 
 	/**
@@ -45,14 +77,14 @@ class TinyFramework_Factory
 			);
 		}
 		// Instanciate the TinyFramework_Model
-		$model = new $name();
+		$model = $this->get($name);
 		// Throw an Exception if not a valid instance
 		if (!($model instanceof TinyFramework_Model))
 		{
 			throw new Exception($name . ' is not a TinyFramework_Model');
 		}
 		// Load the column
-		foreach ($model as $column => $value)
+		foreach ($model->getColumns() as $column)
 		{
 			if (isset($column_values[$column]))
 				$model->$column = $column_values[$column];

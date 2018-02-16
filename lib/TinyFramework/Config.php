@@ -5,7 +5,7 @@
  *
  * @package TinyFramework
  */
-abstract class TinyFramework_Config
+class TinyFramework_Config
 {
 	/**
 	 * @var string Name of Factory class to be used
@@ -15,12 +15,12 @@ abstract class TinyFramework_Config
 	/**
 	 * @var string Name of default Controller class to be used
 	 */
-	protected $default_controller = 'Controller_Default';
+	protected $default_controller = 'Default';
 
 	/**
 	 * @var string Name of Controller to call in case of fatal error
 	 */
-	protected $error_controller = 'Controller_Error';
+	protected $error_controller = 'Error';
 
 	/**
 	 * @var string Name of default method to be called

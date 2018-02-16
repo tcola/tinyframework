@@ -25,7 +25,7 @@ class TinyFramework_Database extends PDO
 	public function getModel(TinyFramework_Factory $factory, $model_name, $query, $args)
 	{
 		$models = $this->getModels($factory, $model_name, $query, $args);
-		return $models[0];
+		return (isset($models[0]) ? $models[0] : NULL);
 	}
 
 	/**
@@ -35,17 +35,28 @@ class TinyFramework_Database extends PDO
 	 * @param string $model_name
 	 * @param string $query
 	 * @param array $args numeric or associative based on query format
+	 * @param string|FALSE $key_column Optional: key array on this column value
 	 * @return array
 	 */
-	public function getModels(TinyFramework_Factory $factory, $model_name, $query, $args)
+	public function getModels(TinyFramework_Factory $factory, $model_name, $query, $args, $key_column=FALSE)
 	{
 		$stmt = $this->prepare($query);
 		$stmt->execute($args);
 		$stmt->setFetchMode(PDO::FETCH_ASSOC);
 		$models = array();
-		while ($row = $stmt->fetch())
+		if ($key_column)
 		{
-			$models[] = $factory->getModel($model_name, $row);
+			while ($row = $stmt->fetch())
+			{
+				$models[$row[$key_column]] = $factory->getModel($model_name, $row);
+			}
+		}
+		else // numeric
+		{
+			while ($row = $stmt->fetch())
+			{
+				$models[] = $factory->getModel($model_name, $row);
+			}
 		}
 		return $models;
 	}
@@ -61,6 +72,11 @@ class TinyFramework_Database extends PDO
 		// Set some short pretty variables
 		$auto_increment = $model->getAutoIncrement();
 		$columns = $model->getColumns();
+		// Remove auto increment column if exists but not specified
+		if (!empty($auto_increment) && !isset($model->$auto_increment))
+		{
+			$columns = array_diff($columns, array($auto_increment));
+		}
 		// Build the query
 		$query = '
 			INSERT INTO
@@ -74,20 +90,34 @@ class TinyFramework_Database extends PDO
 		';
 		// Build value array
 		$values = array();
-		$params = array_merge($columns, $columns);
+		$params = array_merge($columns, $columns); // need full list twice
 		foreach ($params as $column)
 		{
 			$values[] = $model->$column;
 		}
-
 		// Execute the query
 		$stmt = $this->prepare($query);
 		$stmt->execute($values);
-
+		// Handle errors
+		$err = $stmt->errorInfo();
+		if (intval($err[1])) throw new Exception('MySQL ERROR: ' . $err[2]);
 		// If the auto_increment column is empty, set it to the last insert id
-		if (!isset($model->$auto_increment))
+		if (!empty($auto_increment) && !isset($model->$auto_increment))
 		{
-			$model->$auto_increment = $this->lastInsertId();
+			if ($this->lastInsertId()) // record inserted
+			{
+				$model->$auto_increment = $this->lastInsertId();
+			}
+			else // record updated
+			{
+				$query = "
+					SELECT `" . $auto_increment . "` FROM `" . $model->getTableName() . "`
+					WHERE `" . implode('` = ? AND `', $params) . "` = ?
+				";
+				$stmt = $this->prepare($query);
+				$stmt->execute($values);
+				$model->$auto_increment = $stmt->fetchColumn();
+			}
 		}
 	}
 }

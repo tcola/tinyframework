@@ -21,9 +21,15 @@ class TinyFramework
 
 	/**
 	 * @static
-	 * @var TinyFramework_Database
+	 * @var TinyFramework_Request
 	 */
-	private static $database;
+	private static $request;
+
+	/**
+	 * @static
+	 * @var array of TinyFramework_Database objects keyed on dsn
+	 */
+	private static $database = array();
 
 	/**
 	 * Sets the Config object.
@@ -76,22 +82,37 @@ class TinyFramework
 	}
 
 	/**
+	 * Returns the Request object.
+	 *
+	 * @static
+	 * @return TinyFramework_Request
+	 */
+	public static function getRequest()
+	{
+		if (!isset(self::$request))
+		{
+			self::$request = new TinyFramework_Request($_REQUEST);
+		}
+		return self::$request;
+	}
+
+	/**
 	 * Returns the Database object.
 	 *
 	 * @static
 	 * @return TinyFramework_Database
 	 */
-	public static function getDatabase()
+	public static function getDatabase($dsn='default')
 	{
-		if (!isset(self::$database))
+		if (!isset(self::$database[$dsn]))
 		{
-			self::$database = new TinyFramework_Database(
-				self::getConfig()->database_dsn, 
+			self::$database[$dsn] = new TinyFramework_Database(
+				($dsn === 'default' ? self::getConfig()->database_dsn : $dsn), 
 				self::getConfig()->database_user, 
 				self::getConfig()->database_pass
 			);
 		}
-		return self::$database;
+		return self::$database[$dsn];
 	}
 }
 

@@ -1,10 +1,10 @@
 <?php
 /**
- * Dependency Injected Object.
+ * Dependency Injected Trait.
  *
  * @package TinyFramework
  */
-abstract class TinyFramework_DependencyInjected
+trait TinyFramework_DependencyInjected
 {
 	/**
 	 * @var TinyFramework_Factory
@@ -22,6 +22,16 @@ abstract class TinyFramework_DependencyInjected
 	private $config;
 
 	/**
+	 * @var TinyFramework_Request
+	 */
+	private $request;
+
+	/**
+	 * @var string Overrides dsn set in config
+	 */
+	//protected $database_dsn;
+
+	/**
 	 * @param TinyFramework_Factory $factory
 	 * @return NULL
 	 */
@@ -37,6 +47,7 @@ abstract class TinyFramework_DependencyInjected
 	public function setDatabase(TinyFramework_Database $database)
 	{
 		$this->database = $database;
+		$this->database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	}
 
 	/**
@@ -46,6 +57,15 @@ abstract class TinyFramework_DependencyInjected
 	public function setConfig(TinyFramework_Config $config)
 	{
 		$this->config = $config;
+	}
+
+	/**
+	 * @param TinyFramework_Request $request
+	 * @return NULL
+	 */
+	public function setRequest(TinyFramework_Request $request)
+	{
+		$this->request = $request;
 	}
 
 	/**
@@ -70,5 +90,21 @@ abstract class TinyFramework_DependencyInjected
 	protected function getConfig()
 	{
 		return $this->config;
+	}
+
+	/**
+	 * @return TinyFramework_Request
+	 */
+	protected function getRequest()
+	{
+		return $this->request;
+	}
+
+	/**
+	 * @return string|FALSE
+	 */
+	public function getDatabaseDSN()
+	{
+		return (isset($this->database_dsn) ? $this->database_dsn : FALSE);
 	}
 }
